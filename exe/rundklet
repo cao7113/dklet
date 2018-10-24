@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+file = ARGV[0]
+abort "Error: require docklet file!" unless file
+$PROGRAM_NAME = file
+ARGV.shift
+
+# Tricks to support env preset vars (high priority before register)
+argv = ARGV
+idx = argv.index('--env') || argv.index('-e')
+if idx
+  ENV['APP_ENV'] ||= argv[idx+1]
+end
+idx = argv.index('--release') || argv.index('-r')
+if idx
+  ENV['APP_RELEASE'] ||= argv[idx+1]
+end
+
+require "dklet"
+extend Dklet::DSL
+load file
+
+# load tag-specific features, eg. rails_web
+app_tags.each do |atag|
+  #puts "==loading #{atag}"
+  require "dklet/app_tags/#{atag}"
+end
+
+let_cli_magic_start! # make dockerize fun with ruby
