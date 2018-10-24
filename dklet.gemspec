@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{practical DSL for daily container life}
   spec.description   = spec.summary
-  spec.homepage      = "https://github.com/dailyops/kc/dklet"
+  spec.homepage      = "https://github.com/dailyops/dklet"
   spec.license       = "MIT"
 
   # Specify which files should be added to the gem when it is released.
