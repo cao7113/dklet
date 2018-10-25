@@ -1,31 +1,52 @@
 #!/usr/bin/env bash 
-[ -z $BOOTER_DKLET_RC ] || { echo Warning: has sourced $BOOTER_DKLET_RC!; return 1; } 
-BOOTER_DKLET_RC=$(evar=${BASH_SOURCE[0]} ruby -e "puts File.realpath(ENV['evar'])")
+if [ ! -z $BOOTER_DKLET_RC ];then
+  if [ -z $FORCE_RC ]; then
+    echo Warning: has sourced $BOOTER_DKLET_RC!
+    return 1 
+  fi
+fi
+BOOTER_DKLET_RC=$( ruby -e "puts File.realpath('${BASH_SOURCE[0]}')")
 BOOTER_DKLET_HOME=$(dirname $BOOTER_DKLET_RC)
-#[ -d "$BOOTER_DKLET_HOME/bin" ] && PATH=$PATH:$BOOTER_DKLET_HOME/bin
-# default use exe
+
 export PATH=$PATH:$BOOTER_DKLET_HOME/exe
 
 function dklet(){
   tp=${1:-cd}
   case "$tp" in
+    rc|file)
+      echo "$BOOTER_DKLET_RC"
+      ;;
     home|root)
       echo $BOOTER_DKLET_HOME
       ;;
     cd)
       cd "$BOOTER_DKLET_HOME"
       ;;
-    rc|vi)
+    edit|vi)
       vi "$BOOTER_DKLET_RC"
+      $FUNCNAME reload
       ;;
     show)
       cat "$BOOTER_DKLET_RC"
       ;;
+    reload|source)
+      FORCE_RC=1 source "$BOOTER_DKLET_RC"
+      echo ==has sourced "$BOOTER_DKLET_RC"
+      ;;
+    help|h)
+      echo rc file: "$BOOTER_DKLET_RC"
+      type $FUNCNAME 
+      ;;
+
+    ## app related
     gem)
       gem query dklet -l
       ;;
+    gemrelease)
+      $FUNCNAME cd && rake release
+      ;;
     gemup)
-      dklet cd && rake install:local --trace
+      $FUNCNAME cd && rake install:local --trace
       ;;
     gemdown)
       gem uninstall dklet --all -x
@@ -33,8 +54,8 @@ function dklet(){
     status|st)
       type -a rundklet
       ;;
-    help|h)
-      type $FUNCNAME 
+    test)
+      $FUNCNAME cd && rake test
       ;;
     *)
       $FUNCNAME help

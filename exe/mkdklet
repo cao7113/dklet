@@ -12,8 +12,9 @@ extra = ARGV[1..-1].join(' ')
 lib_path = File.join(__dir__, '../lib')
 $:.unshift lib_path unless $:.include?(lib_path) 
 
+require 'dklet'
 handler = File.basename(__FILE__)
-tmpl = lib_path.join('template/dklet.erb').read
+tmpl = Dklet.lib_path.join('template/dklet.erb').read
 
 erb = ERB.new(tmpl, nil, '%<>')
 result = erb.result(binding)
