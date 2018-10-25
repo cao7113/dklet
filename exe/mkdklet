@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-require 'dklet'
 
 rbfile = ARGV[0]
 abort "rbfile required!" if rbfile.nil?
@@ -10,8 +9,11 @@ abort "rbfile #{rpath.to_s} existed!" if rpath.exist?
 rpath.parent.mkpath
 extra = ARGV[1..-1].join(' ')
 
+lib_path = File.join(__dir__, '../lib')
+$:.unshift lib_path unless $:.include?(lib_path) 
+
 handler = File.basename(__FILE__)
-tmpl = Dklet.lib_path.join('template/dklet.erb').read
+tmpl = lib_path.join('template/dklet.erb').read
 
 erb = ERB.new(tmpl, nil, '%<>')
 result = erb.result(binding)

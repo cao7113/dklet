@@ -61,19 +61,15 @@ module Dklet::DSL
   end
 
   def default_image_labels
-    app_labels = image_label_hash.map{|k, v| [k,v].join('=') }.join(' ')
-    "maintainer=dailyops built_from=docklet #{app_labels}"
-  end
-
-  def image_label_hash
-    {
-      dklet_app: appname,
-      dklet_env: env
-    }
+    "maintainer=dailyops built_from=dklet"
   end
 
   def release_label_hash
-    image_label_hash.merge(dklet_release: app_release)
+    {
+      dklet_env: env,
+      dklet_app: appname,
+      dklet_release: app_release
+    }
   end
 
   # maybe from external image

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash 
+[ -z $BOOTER_DKLET_RC ] || { echo Warning: has sourced $BOOTER_DKLET_RC!; return 1; } 
+BOOTER_DKLET_RC=$(evar=${BASH_SOURCE[0]} ruby -e "puts File.realpath(ENV['evar'])")
+BOOTER_DKLET_HOME=$(dirname $BOOTER_DKLET_RC)
+#[ -d "$BOOTER_DKLET_HOME/bin" ] && PATH=$PATH:$BOOTER_DKLET_HOME/bin
+# default use exe
+export PATH=$PATH:$BOOTER_DKLET_HOME/exe
+
+function dklet(){
+  tp=${1:-cd}
+  case "$tp" in
+    home|root)
+      echo $BOOTER_DKLET_HOME
+      ;;
+    cd)
+      cd "$BOOTER_DKLET_HOME"
+      ;;
+    rc|vi)
+      vi "$BOOTER_DKLET_RC"
+      ;;
+    show)
+      cat "$BOOTER_DKLET_RC"
+      ;;
+    gem)
+      gem query dklet -l
+      ;;
+    gemup)
+      dklet cd && rake install:local --trace
+      ;;
+    gemdown)
+      gem uninstall dklet --all -x
+      ;;
+    status|st)
+      type -a rundklet
+      ;;
+    help|h)
+      type $FUNCNAME 
+      ;;
+    *)
+      $FUNCNAME help
+      ;;
+  esac
+}

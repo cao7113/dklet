@@ -16,6 +16,9 @@ if idx
   ENV['APP_RELEASE'] ||= argv[idx+1]
 end
 
+lib_path = File.join(__dir__, '../lib')
+$:.unshift lib_path unless $:.include?(lib_path) 
+
 require "dklet"
 extend Dklet::DSL
 load file
