@@ -30,6 +30,7 @@ class DockletCLI < Thor
   desc 'console', 'get ruby console'
   def console
     pp registry
+    require 'byebug'
     byebug 
     puts "=ok"
   end
@@ -50,41 +51,7 @@ class DockletCLI < Thor
   option :opts, banner: 'docker run options'
   option :tmp, type: :boolean, default: false, banner: 'allow run tmp container'
   def runsh(cid = ops_container)
-    tmprun = options[:tmp]
-    if tmprun
-      dkcmd = "docker run -t -d" 
-      dkcmd += " --network #{netname}" if netname
-      dkcmd += " #{options[:opts]}" if options[:opts]
-      cid = `#{dkcmd} #{docker_image} sleep 3d`.chomp
-      puts "==run tmp container: #{cid}" unless options[:quiet]
-    end
-
-    abort "No container found!" unless cid
-
-    cmd = options[:cmd] || 'sh'
-    puts "run : #{cmd}" unless options[:quiet]
-
-    if cmd == 'sh' # simple case
-      cmds = <<~Desc
-        docker exec -it #{options[:opts]} #{cid} #{cmd}
-      Desc
-    else
-      tfile = Dklet::Util.tmpfile_for cmd
-      dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
-      # todo user permissions for pg
-      cmds = <<~Desc
-        docker cp --archive #{tfile} #{cid}:#{dst_file}
-        docker exec -it #{options[:opts]} #{cid} sh -c 'sh #{dst_file} && rm -f #{dst_file}'
-      Desc
-    end
-    puts cmds unless options[:quiet]
-    system cmds unless options[:dry]
-
-    if tmprun
-      system <<~Desc
-        docker rm -f #{cid}
-      Desc
-    end
+    container_run(options[:cmd], options.merge(cid: cid))
   end
   map "sh" => :runsh
 
@@ -338,10 +305,43 @@ class DockletCLI < Thor
       klass.new.invoke(task, args, options)
     end
 
-    def container_run(cmds, opts = nil)
+    def container_run(cmds, opts = {})
+      cid = opts[:cid] || ops_container
+      tmprun = opts[:tmp]
+      if tmprun
+        dkcmd = "docker run -t -d" 
+        dkcmd += " --network #{netname}" if netname
+        dkcmd += " #{opts[:opts]}" if opts[:opts]
+        cid = `#{dkcmd} #{docker_image} sleep 3d`.chomp
+        puts "==run tmp container: #{cid}" unless opts[:quiet]
+      end
+      abort "No container found!" unless cid
+
       cmds = cmds.join("\n") if cmds.is_a?(Array)
-      opts = (opts||{}).merge(cmd: cmds).merge(options.slice('quiet', 'dry'))
-      invoke :runsh, [], opts
+      cmd = cmds || 'sh'
+      puts "run : #{cmd}" unless opts[:quiet]
+
+      if cmd == 'sh' # simple case
+        cmds = <<~Desc
+          docker exec -it #{opts[:opts]} #{cid} #{cmd}
+        Desc
+      else
+        tfile = tmpfile_for(cmd)
+        dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
+        # todo user permissions for pg
+        cmds = <<~Desc
+          docker cp --archive #{tfile} #{cid}:#{dst_file}
+          docker exec -it #{opts[:opts]} #{cid} sh -c 'sh #{dst_file} && rm -f #{dst_file}'
+        Desc
+      end
+      puts cmds unless opts[:quiet]
+      system cmds unless opts[:dry]
+
+      if tmprun
+        system <<~Desc
+          docker rm -f #{cid}
+        Desc
+      end
     end
 
     # encapsulate run commands behaviors in system

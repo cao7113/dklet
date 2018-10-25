@@ -4,7 +4,7 @@ require 'socket'
 module Dklet::Util
   module_function
 
-  def tmpfile_for(str, prefix: 'kc-tmp')
+  def tmpfile_for(str, prefix: 'dklet-tmp')
     file = Tempfile.new(prefix)
     file.write str
     file.close # save to disk

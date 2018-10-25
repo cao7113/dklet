@@ -1,14 +1,14 @@
 #!/usr/bin/env bash 
-if [ ! -z $BOOTER_DKLET_RC ];then
+if [ -z $BOOTER_DKLET_RC ];then
+  BOOTER_DKLET_RC=$( ruby -e "puts File.realpath('${BASH_SOURCE[0]}')")
+  BOOTER_DKLET_HOME=$(dirname $BOOTER_DKLET_RC)
+  export PATH=$PATH:$BOOTER_DKLET_HOME/exe
+else
   if [ -z $FORCE_RC ]; then
     echo Warning: has sourced $BOOTER_DKLET_RC!
     return 1 
   fi
 fi
-BOOTER_DKLET_RC=$( ruby -e "puts File.realpath('${BASH_SOURCE[0]}')")
-BOOTER_DKLET_HOME=$(dirname $BOOTER_DKLET_RC)
-
-export PATH=$PATH:$BOOTER_DKLET_HOME/exe
 
 function dklet(){
   tp=${1:-cd}
@@ -42,10 +42,10 @@ function dklet(){
     gem)
       gem query dklet -l
       ;;
-    gemrelease)
+    gemrelease|release)
       $FUNCNAME cd && rake release
       ;;
-    gemup)
+    gemup|install)
       $FUNCNAME cd && rake install:local --trace
       ;;
     gemdown)
@@ -54,8 +54,21 @@ function dklet(){
     status|st)
       type -a rundklet
       ;;
-    test)
-      $FUNCNAME cd && rake test
+    test|try)
+      demo=/tmp/dklet-demo
+      mkdir -p $(dirname $demo)
+      rm -f $demo
+      mkdklet $demo
+      $demo help
+      $demo build
+      $demo inspect_info
+      $demo clean --image
+      echo ==demo file at: $demo
+      ;;
+    demo)
+      demo=/tmp/dklet-demo
+      [ -f $demo ] || $FUNCNAME test
+      cat $demo
       ;;
     *)
       $FUNCNAME help

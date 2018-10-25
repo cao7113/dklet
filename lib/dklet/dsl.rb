@@ -128,9 +128,13 @@ module Dklet::DSL
     pname = script_path.basename.to_s
     "#{pname}_#{name}"
   end
+
+  def tmpfile_for(str)
+    Dklet::Util.tmpfile_for(str)
+  end
   
   def set_file_for(name, str)
-    register name, Dklet::Util.tmpfile_for(str)
+    register name, tmpfile_for(str)
   end
 
   def file_for(name)
@@ -155,7 +159,7 @@ module Dklet::DSL
     return unless tmpl
     erb = ERB.new(tmpl, nil, '%<>')
     rendered = erb.result(in_binding)
-    Dklet::Util.tmpfile_for(rendered)
+    tmpfile_for(rendered)
   end
 
   # Dockerfile for image build
