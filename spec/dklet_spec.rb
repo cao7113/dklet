@@ -1,9 +1,18 @@
 RSpec.describe Dklet do
-  it "has a version number" do
-    expect(Dklet::VERSION).not_to be nil
-  end
+  it "check and recognize singline-line commands" do
+    cmd = "bash -c 'echo hi'"
+    expect(Dklet::Util.single_line?(cmd)).to eq(true)
 
-  it "does something useful" do
-    expect(false).to eq(true)
+    cmd = "bash -c 'echo hi'; not support this case"
+    expect(Dklet::Util.single_line?(cmd)).to eq(true)
+
+    cmd = "echo a; echo b"
+    expect(Dklet::Util.single_line?(cmd)).to eq(false)
+
+    cmd = <<~Desc
+      echo a
+      echo c
+    Desc
+    expect(Dklet::Util.single_line?(cmd)).to eq(false)
   end
 end

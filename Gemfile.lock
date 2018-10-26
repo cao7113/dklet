@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dklet (0.1.0)
+    dklet (0.1.4)
       thor
 
 GEM

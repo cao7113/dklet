@@ -306,6 +306,7 @@ class DockletCLI < Thor
     end
 
     def container_run(cmds, opts = {})
+      # get target container
       cid = opts[:cid] || ops_container
       tmprun = opts[:tmp]
       if tmprun
@@ -317,25 +318,26 @@ class DockletCLI < Thor
       end
       abort "No container found!" unless cid
 
-      cmds = cmds.join("\n") if cmds.is_a?(Array)
-      cmd = cmds || 'sh'
-      puts "run : #{cmd}" unless opts[:quiet]
-
-      if cmd == 'sh' # simple case
-        cmds = <<~Desc
-          docker exec -it #{opts[:opts]} #{cid} #{cmd}
-        Desc
-      else
-        tfile = tmpfile_for(cmd)
-        dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
-        # todo user permissions for pg
-        cmds = <<~Desc
-          docker cp --archive #{tfile} #{cid}:#{dst_file}
-          docker exec -it #{opts[:opts]} #{cid} sh -c 'sh #{dst_file} && rm -f #{dst_file}'
-        Desc
+      # how to run
+      new_cmds = if Dklet::Util.single_line?(cmds)
+          <<~Desc
+            docker exec -it #{opts[:opts]} #{cid} #{cmds}
+          Desc
+        else
+          cmds = cmds.join("\n") if cmds.is_a?(Array)
+          tfile = tmpfile_for(cmds)
+          dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
+          <<~Desc
+            docker cp --archive #{tfile} #{cid}:#{dst_file}
+            docker exec -it #{opts[:opts]} #{cid} sh -c 'sh #{dst_file} && rm -f #{dst_file}'
+          Desc
+        end
+      unless opts[:quiet]
+        puts "==commands to run on #{cid}"
+        puts cmds
+        puts "==end of print commands" 
       end
-      puts cmds unless opts[:quiet]
-      system cmds unless opts[:dry]
+      system new_cmds unless opts[:dry]
 
       if tmprun
         system <<~Desc
