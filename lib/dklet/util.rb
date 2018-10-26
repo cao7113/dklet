@@ -20,9 +20,12 @@ module Dklet::Util
     Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
   end
 
-  def single_line?(cmds, pattern: /.+[\n;]/)
+  def single_line?(cmds)
+    cmds = cmds.chomp
     return false if cmds.is_a? Array
+    return false if cmds =~ /\n/
     return true if cmds =~ /^\s*(bash|sh)/ 
-    cmds !~ pattern
+    return false if cmds =~ /.+;/
+    true
   end
 end

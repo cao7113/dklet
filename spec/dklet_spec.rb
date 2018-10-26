@@ -14,5 +14,16 @@ RSpec.describe Dklet do
       echo c
     Desc
     expect(Dklet::Util.single_line?(cmd)).to eq(false)
+
+    cmd = <<~Desc
+      echo a
+      sh
+    Desc
+    expect(Dklet::Util.single_line?(cmd)).to eq(false)
+
+    cmd = <<~Desc
+      psql -c '\\du'
+    Desc
+    expect(Dklet::Util.single_line?(cmd)).to eq(true)
   end
 end

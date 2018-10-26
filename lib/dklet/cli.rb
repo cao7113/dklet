@@ -47,11 +47,11 @@ class DockletCLI < Thor
   end
 
   desc 'runsh [CONTAINER]', 'run into container'
-  option :cmd, banner: 'run command in container'
-  option :opts, banner: 'docker run options'
+  option :cid, banner: 'target container id or name'
   option :tmp, type: :boolean, default: false, banner: 'allow run tmp container'
-  def runsh(cid = ops_container)
-    container_run(options[:cmd], options.merge(cid: cid))
+  option :opts, banner: 'docker run options'
+  def runsh(cmds = 'sh')
+    container_run(cmds)
   end
   map "sh" => :runsh
 
@@ -305,7 +305,18 @@ class DockletCLI < Thor
       klass.new.invoke(task, args, options)
     end
 
+    # encapsulate run commands behaviors in system
+    def system_run(cmds, opts={})
+      unless options[:quiet]
+        puts cmds
+      end
+      unless options[:dry]
+        system cmds
+      end
+    end
+
     def container_run(cmds, opts = {})
+      opts = options.merge(opts)
       # get target container
       cid = opts[:cid] || ops_container
       tmprun = opts[:tmp]
@@ -329,12 +340,17 @@ class DockletCLI < Thor
           dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
           <<~Desc
             docker cp --archive #{tfile} #{cid}:#{dst_file}
-            docker exec -it #{opts[:opts]} #{cid} sh -c 'sh #{dst_file} && rm -f #{dst_file}'
+            docker exec -it #{opts[:opts]} #{cid} sh #{'-x' if opts[:debug]} #{dst_file}
+            docker exec #{cid} rm -f #{dst_file}
           Desc
         end
       unless opts[:quiet]
         puts "==commands to run on #{cid}"
         puts cmds
+        if opts[:debug]
+          puts "====by run on host"
+          puts new_cmds 
+        end
         puts "==end of print commands" 
       end
       system new_cmds unless opts[:dry]
@@ -343,16 +359,6 @@ class DockletCLI < Thor
         system <<~Desc
           docker rm -f #{cid}
         Desc
-      end
-    end
-
-    # encapsulate run commands behaviors in system
-    def system_run(cmds, opts={})
-      unless options[:quiet]
-        puts cmds
-      end
-      unless options[:dry]
-        system cmds
       end
     end
   end # of no_commands
