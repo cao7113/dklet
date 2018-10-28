@@ -3,10 +3,10 @@ class DockletCLI < Thor
   #include Thor::Actions
   default_command :main
 
-  class_option :debug, type: :boolean, default: false, banner: 'in debug mode, more log'
-  class_option :dry, type: :boolean, default: false, banner: 'dry run'
-  class_option :quiet, type: :boolean, default: false, banner: 'keep quiet'
-  class_option :force, type: :boolean, default: false, banner: 'force do'
+  class_option :debug, type: :boolean, banner: 'in debug mode, more log'
+  class_option :dry, type: :boolean, banner: 'dry run'
+  class_option :quiet, type: :boolean, banner: 'keep quiet'
+  class_option :force, type: :boolean, banner: 'force do'
   class_option :env, banner: 'app env', aliases: ['-e']
   class_option :release, banner: 'what app release for', aliases: ['-r']
 
@@ -48,12 +48,19 @@ class DockletCLI < Thor
 
   desc 'runsh [CONTAINER]', 'run into container'
   option :cid, banner: 'target container id or name'
-  option :tmp, type: :boolean, default: false, banner: 'allow run tmp container'
+  option :tmp, type: :boolean, banner: 'allow run tmp container'
   option :opts, banner: 'docker run options'
-  def runsh(cmds = 'sh')
+  option :oneline, type: :boolean, default: true, banner: 'docker run options'
+  def runsh(*cmds)
+    if cmds.empty?
+      cmds = 'sh' 
+    else
+      cmds = cmds.join(' ') if options[:oneline]
+    end
     container_run(cmds)
   end
   map "sh" => :runsh
+  map "run" => :runsh
 
   desc 'daemon', 'docker run in daemon'
   option :opts, banner: 'run extra options'
@@ -94,7 +101,7 @@ class DockletCLI < Thor
 
   desc 'clean', 'clean container artifacts'
   # keep cache reused
-  option :image, type: :boolean, default: false, banner: 'clean user-derived images'
+  option :image, type: :boolean, banner: 'clean user-derived images'
   def clean
     invoke_hooks_for(:clean, type: :before)
 
@@ -144,7 +151,7 @@ class DockletCLI < Thor
   end 
 
   desc 'ps', 'ps related containers'
-  option :imaged, type: :boolean, default: false, banner: 'same image digest'
+  option :imaged, type: :boolean, banner: 'same image digest'
   def ps
     cmd = if options[:imaged]
         "docker ps -f ancestor=#{docker_image} -a"
@@ -225,8 +232,8 @@ class DockletCLI < Thor
   end
 
   desc 'inspect_info', 'inspect info'
-  option :image, type: :boolean, default: false, aliases: ['-i'], banner: 'inspect image'
-  option :container, type: :boolean, default: false, aliases: ['-c'], banner: 'inspect container'
+  option :image, type: :boolean, aliases: ['-i'], banner: 'inspect image'
+  option :container, type: :boolean, aliases: ['-c'], banner: 'inspect container'
   def inspect_info
     cmd = nil
     if options[:image]
@@ -252,7 +259,7 @@ class DockletCLI < Thor
         network: netname,
         voluemes_root: volumes_root,
         app_volumes: app_volumes,
-        domain: proxy_domain,
+        domains: proxy_domains,
         dsl_methods: dsl_methods,
         registry: registry
       }

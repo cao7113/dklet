@@ -1,4 +1,4 @@
-RSpec.describe Dklet do
+RSpec.describe Dklet::Util do
   it "check and recognize singline-line commands" do
     cmd = "bash -c 'echo hi'"
     expect(Dklet::Util.single_line?(cmd)).to eq(true)

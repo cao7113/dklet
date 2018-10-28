@@ -383,18 +383,41 @@ module Dklet::DSL
     volumes_root.join(release_path_name)
   end
 
-  ## top proxy domain part
-  def proxy_domain
-    ENV['LOCAL_DKLET_DOMAIN'] || 'lh'
+  ## domain
+  def register_domain(*doms)
+    register :domains, doms
   end
 
-  def domain_for(*doms)
-    doms.map{|d| "#{d}.#{proxy_domain}" }.join(',')
+  # top proxy domain part
+  def proxy_domain_base
+    ENV['PROXY_DOMAIN_BASE'] || 'lh'
+  end
+
+  def proxy_domains(*doms)
+    if doms.empty?
+      doms = fetch(:domains)
+      doms = [appname] if doms.nil? or doms.empty?
+    end
+
+    denv = env
+    denv = nil if denv =~ /^prod/
+
+    doms.map do |d| 
+      [d, denv, proxy_domain_base].compact.join('.')
+    end.join(',') 
   end
 
   # ref dklet/mac/
   def host_domain_in_container
     ENV['HOST_DOMAIN_IN_CONTAINER'] || 'host.dokcer.internal'
+  end
+
+  # 0.0.0.0:32879
+  def host_with_port_for(cport, host_net: true)
+    str = `docker port #{ops_container} #{cport}`.chomp 
+    return if str.empty?
+    return str unless host_net
+    str.sub('0.0.0.0', Dklet::Util.host_ip)
   end
 end
 

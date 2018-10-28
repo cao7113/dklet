@@ -21,8 +21,8 @@ module Dklet::Util
   end
 
   def single_line?(cmds)
-    cmds = cmds.chomp
     return false if cmds.is_a? Array
+    cmds = cmds.chomp
     return false if cmds =~ /\n/
     return true if cmds =~ /^\s*(bash|sh)/ 
     return false if cmds =~ /.+;/
