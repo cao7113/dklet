@@ -3,12 +3,15 @@ class DockletCLI < Thor
   #include Thor::Actions
   default_command :main
 
-  class_option :debug, type: :boolean, banner: 'in debug mode, more log'
-  class_option :dry, type: :boolean, banner: 'dry run'
-  class_option :quiet, type: :boolean, banner: 'keep quiet'
-  class_option :force, type: :boolean, banner: 'force do'
+  # main dimension parameters
   class_option :env, banner: 'app env', aliases: ['-e']
   class_option :release, banner: 'what app release for', aliases: ['-r']
+  # common options 
+  class_option :dry, type: :boolean, banner: 'dry run'
+  class_option :verbose, type: :boolean, banner: 'show verbose info', aliases: [:V]
+  class_option :quiet, type: :boolean, banner: 'keep quiet'
+  class_option :debug, type: :boolean, banner: 'in debug mode, more log', aliases: [:d]
+  class_option :force, type: :boolean, banner: 'force do'
 
   desc 'version', 'show dklet version'
   def version
@@ -225,7 +228,7 @@ class DockletCLI < Thor
   desc 'clear_app_volumes', 'clear app volumes'
   def clear_app_volumes
     if app_volumes.directory?
-      if options[:force] || yes?("Remove app volumes dir data?")
+      if options[:force] || yes?("Remove app volumes dir: #{app_volumes} (y/n)?")
         app_volumes.rmtree
       end
     end
