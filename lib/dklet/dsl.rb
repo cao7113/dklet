@@ -407,17 +407,24 @@ module Dklet::DSL
     end.join(',') 
   end
 
-  # ref dklet/mac/
+  # ref dklet/mac/hostnet
   def host_domain_in_container
     ENV['HOST_DOMAIN_IN_CONTAINER'] || 'host.dokcer.internal'
   end
 
   # 0.0.0.0:32879
-  def host_with_port_for(cport, host_net: true)
+  def host_with_port_for(cport, host_ip: true, only_port: false )
     str = `docker port #{ops_container} #{cport}`.chomp 
     return if str.empty?
-    return str unless host_net
+    if only_port
+      return str.split(':').last
+    end
+    return str unless host_ip
     str.sub('0.0.0.0', Dklet::Util.host_ip)
+  end
+
+  def host_port_for(cport)
+    host_with_port_for(cport, only_port: true)
   end
 end
 

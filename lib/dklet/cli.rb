@@ -4,14 +4,14 @@ class DockletCLI < Thor
   default_command :main
 
   # main dimension parameters
-  class_option :env, banner: 'app env', aliases: ['-e']
-  class_option :release, banner: 'what app release for', aliases: ['-r']
+  class_option :env, banner: 'app env', aliases: [:e]
+  class_option :release, banner: 'what app release for', aliases: [:r]
   # common options 
+  class_option :force, type: :boolean, banner: 'force do', aliases: [:f]
   class_option :dry, type: :boolean, banner: 'dry run'
-  class_option :verbose, type: :boolean, banner: 'show verbose info', aliases: [:V]
-  class_option :quiet, type: :boolean, banner: 'keep quiet'
   class_option :debug, type: :boolean, banner: 'in debug mode, more log', aliases: [:d]
-  class_option :force, type: :boolean, banner: 'force do'
+  class_option :verbose, type: :boolean, banner: 'show verbose info', aliases: [:V]
+  class_option :quiet, type: :boolean, banner: 'keep quiet', aliases: [:q]
 
   desc 'version', 'show dklet version'
   def version
@@ -51,7 +51,7 @@ class DockletCLI < Thor
 
   desc 'runsh [CONTAINER]', 'run into container'
   option :cid, banner: 'target container id or name'
-  option :tmp, type: :boolean, banner: 'allow run tmp container'
+  option :tmp, type: :boolean, aliases: [:t], banner: 'allow run tmp container'
   option :opts, banner: 'docker run options'
   option :oneline, type: :boolean, default: true, banner: 'docker run options'
   def runsh(*cmds)
@@ -234,6 +234,18 @@ class DockletCLI < Thor
     end
   end
 
+  desc '', 'reset if need'
+  def reset
+    if env =~ /^prod/
+      return unless (options[:force] || yes?("RESET #{full_release_name}?"))
+    end
+    system <<~Desc
+      #{dklet_script} clean
+      #{dklet_script} clear_app_volumes
+      #{dklet_script}
+    Desc
+  end
+
   desc 'inspect_info', 'inspect info'
   option :image, type: :boolean, aliases: ['-i'], banner: 'inspect image'
   option :container, type: :boolean, aliases: ['-c'], banner: 'inspect container'
@@ -334,8 +346,8 @@ class DockletCLI < Thor
         dkcmd = "docker run -t -d" 
         dkcmd += " --network #{netname}" if netname
         dkcmd += " #{opts[:opts]}" if opts[:opts]
-        cid = `#{dkcmd} #{docker_image} sleep 3d`.chomp
-        puts "==run tmp container: #{cid}" unless opts[:quiet]
+        img = opts[:image] || docker_image
+        cid = `#{dkcmd} #{img} sleep 3d`.chomp
       end
       abort "No container found!" unless cid
 
@@ -355,7 +367,7 @@ class DockletCLI < Thor
           Desc
         end
       unless opts[:quiet]
-        puts "==commands to run on #{cid}"
+        puts "==commands to run on #{'tmp' if tmprun} container #{cid.size == 64 ? cid[0..11] : cid}"
         puts cmds
         if opts[:debug]
           puts "====by run on host"
@@ -367,7 +379,7 @@ class DockletCLI < Thor
 
       if tmprun
         system <<~Desc
-          docker rm -f #{cid}
+          docker rm -f #{cid} >/dev/null
         Desc
       end
     end

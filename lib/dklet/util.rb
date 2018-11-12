@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'socket'
+require 'os'
 
 module Dklet::Util
   module_function
@@ -18,6 +19,10 @@ module Dklet::Util
 
   def host_ip
     Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
+  end
+
+  def host_os
+    ::OS
   end
 
   def single_line?(cmds)

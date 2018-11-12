@@ -2,6 +2,7 @@
 if [ -z $BOOTER_DKLET_RC ];then
   BOOTER_DKLET_RC=$( ruby -e "puts File.realpath('${BASH_SOURCE[0]}')")
   BOOTER_DKLET_HOME=$(dirname $BOOTER_DKLET_RC)
+  # put exe/ into path, how to fix gem version 
   export PATH=$PATH:$BOOTER_DKLET_HOME/exe
 else
   if [ -z $FORCE_RC ]; then
@@ -53,6 +54,14 @@ function dklet(){
       ;;
     status|st)
       type -a rundklet
+      ;;
+    cli|irb)
+      (cd $BOOTER_DKLET_HOME && bundle install)
+      demo=/tmp/dklet-demo
+      mkdir -p $(dirname $demo)
+      rm -f $demo
+      mkdklet $demo
+      $demo console
       ;;
     test|try)
       demo=/tmp/dklet-demo
