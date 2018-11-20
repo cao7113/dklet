@@ -381,7 +381,7 @@ module Dklet::DSL
       else
         '~/docker-volumes'
       end
-    proot = Pathname(root)
+    proot = Pathname(root).expand_path
     proot.mkpath unless proot.directory?
     proot
   end
