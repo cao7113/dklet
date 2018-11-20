@@ -147,9 +147,8 @@ module Dklet::DSL
     File.read(fpath)
   end
 
-  # todo
   def dklet_config_for(name)
-    p = Pathname("/dkconf/#{full_release_name}")
+    p = Pathname("~/.dklet/config/#{full_release_name}")
     p.mkpath unless p.directory?
     p.join(name)
   end
