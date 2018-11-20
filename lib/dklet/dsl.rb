@@ -361,6 +361,14 @@ module Dklet::DSL
     ENV['APP_ENV'] || fetch(:default_env) || 'dev'
   end
 
+  def in_dev?
+    env =~ /^dev/
+  end
+
+  def in_prod?
+    env =~ /^prod/
+  end
+
   # 标识一次运行发布的用途, 如redis for hirails-only
   def app_release
     ENV['APP_RELEASE'] || 'default'

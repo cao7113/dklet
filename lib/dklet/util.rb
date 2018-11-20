@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'socket'
+require 'securerandom'
 require 'os'
 
 module Dklet::Util
@@ -25,6 +26,10 @@ module Dklet::Util
     ::OS
   end
 
+  def on_mac?
+    host_os.mac?
+  end
+
   def single_line?(cmds)
     return false if cmds.is_a? Array
     cmds = cmds.chomp
@@ -32,5 +37,10 @@ module Dklet::Util
     return true if cmds =~ /^\s*(bash|sh)/ 
     return false if cmds =~ /.+;/
     true
+  end
+
+  ## secure
+  def gen_password(len = 10)
+    SecureRandom.alphanumeric(len)
   end
 end
