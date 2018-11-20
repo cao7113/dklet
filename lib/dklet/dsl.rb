@@ -148,7 +148,7 @@ module Dklet::DSL
   end
 
   def dklet_config_for(name)
-    p = Pathname("~/.dklet/config/#{full_release_name}")
+    p = Pathname("~/.dklet/config/#{full_release_name}").expand_path
     p.mkpath unless p.directory?
     p.join(name)
   end
