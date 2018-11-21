@@ -261,7 +261,7 @@ module Dklet::DSL
 
   ## project name for docker-compose
   def compose_name
-    "#{fetch(:compose_name) || appname}_#{env}"
+    "#{env}-#{fetch(:compose_name) || appname}"
   end
 
   # -f, --file
@@ -278,6 +278,7 @@ module Dklet::DSL
     fetch(:approot) || build_root || script_path
   end
 
+  # todo disentangle here paths
   def appname
     fetch(:appname) || script_name
   end
