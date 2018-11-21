@@ -49,7 +49,7 @@ class DockletCLI < Thor
     Desc
   end
 
-  desc 'runsh [CONTAINER]', 'run into container'
+  desc 'runsh [CMDS]', 'run into or scripts in a container'
   option :cid, banner: 'target container id or name'
   option :tmp, type: :boolean, aliases: [:t], banner: 'allow run tmp container'
   option :opts, banner: 'docker run options'
@@ -234,9 +234,9 @@ class DockletCLI < Thor
     end
   end
 
-  desc '', 'reset if need'
+  desc 'reset', 'reset if need'
   def reset
-    if env =~ /^prod/
+    if in_prod?
       return unless (options[:force] || yes?("RESET #{full_release_name}?"))
     end
     system <<~Desc
@@ -256,7 +256,7 @@ class DockletCLI < Thor
     elsif options[:container]
       cid = containers_for_release.first || container_name || ops_container
       cmd = "docker inspect #{cid}"
-    else
+    else # dklet info
       h = {
         script: dklet_script,
         script_path: script_path,
@@ -266,6 +266,7 @@ class DockletCLI < Thor
         release: app_release,
         full_release_name: full_release_name,
         container_name: container_name,
+        ops_container: ops_container,
         image: docker_image,
         approot: approot,
         build_root: build_root,
@@ -339,13 +340,15 @@ class DockletCLI < Thor
 
     def container_run(cmds, opts = {})
       opts = options.merge(opts)
+      dk_opts = opts[:opts] || fetch(:docker_exec_opts)
+
       # get target container
       cid = opts[:cid] || ops_container
       tmprun = opts[:tmp]
       if tmprun
         dkcmd = "docker run -t -d" 
         dkcmd += " --network #{netname}" if netname
-        dkcmd += " #{opts[:opts]}" if opts[:opts]
+        dkcmd += " #{dk_opts}" if dk_opts
         img = opts[:image] || docker_image
         cid = `#{dkcmd} #{img} sleep 3d`.chomp
       end
@@ -354,15 +357,17 @@ class DockletCLI < Thor
       # how to run
       new_cmds = if Dklet::Util.single_line?(cmds)
           <<~Desc
-            docker exec -it #{opts[:opts]} #{cid} #{cmds}
+            docker exec -it #{dk_opts} #{cid} #{cmds}
           Desc
         else
           cmds = cmds.join("\n") if cmds.is_a?(Array)
           tfile = tmpfile_for(cmds)
-          dst_file = "/tmp/dklet-#{File.basename(tfile)}-#{rand(10000)}"
+          dst_file = "/tmp/crun-#{File.basename(tfile)}-#{rand(10000)}"
           <<~Desc
             docker cp --archive #{tfile} #{cid}:#{dst_file}
-            docker exec -it #{opts[:opts]} #{cid} sh #{'-x' if opts[:debug]} #{dst_file}
+            # make accessible
+            docker exec #{cid} chmod 755 #{dst_file}
+            docker exec -it #{dk_opts} #{cid} sh #{'-x' if opts[:debug]} #{dst_file}
             docker exec #{cid} rm -f #{dst_file}
           Desc
         end

@@ -2,23 +2,22 @@ custom_commands do
   desc 'rails_boot', 'run rails boot script'
   def rails_boot
     #docker-compose exec website rails db:reset
-    system <<~Desc
-      docker exec #{ops_container} rails db:create 2>/dev/null
+    # todo always create test db  
+    container_run <<~Desc
+      rails db:create 2>/dev/null
     Desc
     invoke :db_migrate
   end
 
   desc 'rails_console', 'run into rails console'
   def rails_console
-    system <<~Desc
-      docker exec -it #{ops_container} rails console
-    Desc
+    container_run "rails console"
   end
 
   desc 'db_migrate', 'run db migrate'
   def db_migrate
-    system <<~Desc
-      docker exec #{ops_container} rails db:migrate
+    container_run <<~Desc
+      rails db:migrate
     Desc
   end
 
@@ -45,3 +44,7 @@ custom_commands do
     end
   end
 end
+
+__END__
+
+* can start when db is not created firstly!

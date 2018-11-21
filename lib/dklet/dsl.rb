@@ -287,6 +287,12 @@ module Dklet::DSL
     [env, appname, app_release].compact.join('_')
   end
 
+  # URI not support underscore hostname
+  # https://bugs.ruby-lang.org/issues/8241
+  def default_container_name
+    [env, appname, app_release].compact.join('-')
+  end
+
   # make path friendly 
   def release_path_name
     full_release_name.gsub(/_/, '-')
@@ -335,11 +341,7 @@ module Dklet::DSL
   end
 
   def default_ops_container
-    containers_for_release.first # || container_name
-  end
-
-  def default_container_name
-    full_release_name
+    containers_for_release.first || containers_for_image.first # || container_name
   end
 
   def container_missing
