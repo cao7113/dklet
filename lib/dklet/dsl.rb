@@ -147,12 +147,6 @@ module Dklet::DSL
     File.read(fpath)
   end
 
-  def dklet_config_for(name)
-    p = Pathname("~/.dklet/config/#{full_release_name}").expand_path
-    p.mkpath unless p.directory?
-    p.join(name)
-  end
-
   def rendered_file_for(name, locals: {}, in_binding: binding)
     tmpl = file_content_for(name)
     return unless tmpl
@@ -373,6 +367,7 @@ module Dklet::DSL
     ENV['APP_RELEASE'] || 'default'
   end
 
+  ## storage settings
   def volumes_root
     vols_root = "#{ENV['HOME']}/DockerVolumes"
     root = fetch(:volumes_root) || if File.directory?(vols_root)
@@ -390,7 +385,23 @@ module Dklet::DSL
     volumes_root.join(release_path_name)
   end
 
-  ## domain
+  ## config
+  def config_root
+    Pathname("~/.dklet/config")
+  end
+
+  def default_app_config_path
+    config_root.join(full_release_name)
+  end
+
+  def app_config_for(name)
+    p = app_config_path.expand_path
+    p.mkpath unless p.directory?
+    p.join(name)
+  end
+
+  #############################
+  #       domain
   def register_domain(*doms)
     register :domains, doms
   end
@@ -407,8 +418,10 @@ module Dklet::DSL
     end
 
     denv = env
-    denv = nil if denv =~ /^prod/
+    denv = nil if in_prod?
 
+    # xx.dev.lh
+    # xx.lh for prod mode
     doms.map do |d| 
       [d, denv, proxy_domain_base].compact.join('.')
     end.join(',') 
@@ -442,4 +455,5 @@ end
   container_name
   ops_container
   app_volumes
+  app_config_path
 ).each{|m| Dklet::DSL.dsl_method(m) }

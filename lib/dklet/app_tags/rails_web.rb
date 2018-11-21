@@ -32,4 +32,16 @@ custom_commands do
     Desc
   end
   map 'open' => 'browse'
+
+  no_commands do
+    def rails_env
+      if in_dev?
+        'development'
+      elsif in_prod?
+        'production'
+      else
+        env
+      end
+    end
+  end
 end

@@ -272,9 +272,9 @@ class DockletCLI < Thor
         build_net: build_net,
         release_labels: release_label_hash,
         network: netname,
-        voluemes_root: volumes_root,
-        app_volumes: app_volumes,
         domains: proxy_domains,
+        app_volumes: app_volumes,
+        app_config_path: app_config_path,
         dsl_methods: dsl_methods,
         registry: registry
       }
