@@ -376,9 +376,12 @@ module Dklet::DSL
     full_release_name.gsub(/_/, '-')
   end
 
+  def default_app_store
+    dkstore_root.join(env, release_path_name)
+  end
+
   def default_app_volumes
-    dkstore_root.join(env, release_path_name, 'volumes')
-    #proot.mkpath unless proot.directory?
+    app_store.join('volumes')
   end
 
   def find_app_volumes(env, app, rel = 'default')
@@ -386,12 +389,12 @@ module Dklet::DSL
     dkstore_root.join(env, [env, app, rel].join('-'), 'volumes')
   end
 
-  def default_app_config_path
-    dkstore_root.join(env, release_path_name, 'config')
+  def default_app_config
+    app_store.join('config')
   end
 
   def app_config_for(name)
-    p = app_config_path.expand_path
+    p = app_config.expand_path
     p.mkpath unless p.directory?
     p.join(name)
   end
@@ -469,6 +472,7 @@ end
   image_labels
   container_name
   ops_container
+  app_store
   app_volumes
-  app_config_path
+  app_config
 ).each{|m| Dklet::DSL.dsl_method(m) }

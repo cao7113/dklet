@@ -219,21 +219,22 @@ class DockletCLI < Thor
   end
 
   desc 'list', ''
-  option :volume, type: :boolean
-  option :config, type: :boolean
   option :root, type: :boolean
+  option :tree
   def list
-    path = if options[:volume]
-             app_volumes
-           elsif options[:config]
-             app_config_path
-           elsif options[:root]
+    path = if options[:root]
              dkstore_root
            else
-             app_volumes
+             app_store
            end
+    puts "list path: #{path}"
+    cmd = if options[:tree]
+            "tree -L #{options[:tree]}"
+          else
+            "ls -alh"
+          end
     system <<~Desc
-      ls -lh #{path}
+      #{cmd} #{path}
     Desc
   end
   map 'ls' => 'list'
@@ -288,7 +289,7 @@ class DockletCLI < Thor
         network: netname,
         domains: proxy_domains,
         app_volumes: app_volumes,
-        app_config_path: app_config_path,
+        app_config: app_config,
         dsl_methods: dsl_methods,
         registry: registry
       }
