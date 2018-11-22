@@ -414,7 +414,7 @@ module Dklet::DSL
   def file_base_domain
     return unless base_domain_file.exist?
     dom = base_domain_file.read.chomp.strip
-    return unless dom.length < 1
+    return if dom.length < 1
     dom
   end
 
