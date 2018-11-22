@@ -1,0 +1,32 @@
+#!/usr/bin/env rundklet
+add_note <<~Note
+  dklet manager-lite
+Note
+
+register :appname, 'dklite'
+
+# https://docs.docker.com/develop/develop-images/dockerfile_best-practices
+write_dockerfile <<~Desc
+  FROM alpine:3.7
+  LABEL <%=image_labels%>
+Desc
+
+task :main do
+  system_run <<~Desc
+    #{dkrun_cmd(named: true)} -d #{docker_image}
+    # #{compose_cmd} up -d
+  Desc
+end
+
+custom_commands do
+  desc 'try', 'try'
+  def try
+    system_run <<~Desc
+      #{dktmprun} echo hi container #{container_name}
+    Desc
+  end
+end
+
+# Generated with dklet version: 0.1.6
+
+__END__

@@ -79,6 +79,9 @@ function dklet(){
       [ -f $demo ] || $FUNCNAME test
       cat $demo
       ;;
+    store)
+      cd ~/dkstore
+      ;;
     *)
       $FUNCNAME help
       ;;

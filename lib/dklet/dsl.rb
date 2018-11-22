@@ -283,7 +283,6 @@ module Dklet::DSL
     fetch(:appname) || script_name
   end
 
-  # take into acccount: app, env, app_release
   def full_release_name
     [env, appname, app_release].compact.join('_')
   end
@@ -291,12 +290,7 @@ module Dklet::DSL
   # URI not support underscore hostname
   # https://bugs.ruby-lang.org/issues/8241
   def default_container_name
-    [env, appname, app_release].compact.join('-')
-  end
-
-  # make path friendly 
-  def release_path_name
-    full_release_name.gsub(/_/, '-')
+    full_release_name.gsub('_', '-')
   end
 
   def register_app_tag(tag)
@@ -370,31 +364,30 @@ module Dklet::DSL
     ENV['APP_RELEASE'] || 'default'
   end
 
-  ## storage settings
-  def volumes_root
-    vols_root = "#{ENV['HOME']}/DockerVolumes"
-    root = fetch(:volumes_root) || if File.directory?(vols_root)
-        # friendly to File sharing on Docker for Mac
-        vols_root
-      else
-        '~/docker-volumes'
-      end
-    proot = Pathname(root).expand_path
-    proot.mkpath unless proot.directory?
-    proot
+  ######################################
+  #    storage settings
+  def dkstore_root
+    # /Users/xxx respect 'File Sharing' paths on Docker for Mac
+    Pathname(ENV["DKSTORE_ROOT"] || "~/dkstore").expand_path
+  end
+
+  # make path friendly 
+  def release_path_name
+    full_release_name.gsub(/_/, '-')
   end
 
   def default_app_volumes
-    volumes_root.join(release_path_name)
+    dkstore_root.join(env, release_path_name, 'volumes')
+    #proot.mkpath unless proot.directory?
   end
 
-  ## config
-  def config_root
-    Pathname("~/.dklet/config")
+  def find_app_volumes(env, app, rel = 'default')
+    # todo duplicate logic
+    dkstore_root.join(env, [env, app, rel].join('-'), 'volumes')
   end
 
   def default_app_config_path
-    config_root.join(full_release_name)
+    dkstore_root.join(env, release_path_name, 'config')
   end
 
   def app_config_for(name)
