@@ -402,9 +402,20 @@ module Dklet::DSL
     register :domains, doms
   end
 
-  # top proxy domain part
-  def proxy_domain_base
-    ENV['PROXY_DOMAIN_BASE'] || 'lh'
+  def proxy_base_domain
+    tdom = ENV['PROXY_BASE_DOMAIN'] || file_base_domain || 'lh'
+    tdom.sub(/^[\s\.]*/, '') # remove prefix
+  end
+
+  def base_domain_file
+    Pathname("~/.domain-base").expand_path
+  end
+
+  def file_base_domain
+    return unless base_domain_file.exist?
+    dom = base_domain_file.read.chomp.strip
+    return unless dom.length < 1
+    dom
   end
 
   def proxy_domains(*doms)
@@ -418,9 +429,17 @@ module Dklet::DSL
 
     # xx.dev.lh
     # xx.lh for prod mode
-    doms.map do |d| 
-      [d, denv, proxy_domain_base].compact.join('.')
+    doms.map do |dom| 
+      [dom, denv, proxy_base_domain].compact.join('.')
     end.join(',') 
+  end
+
+  # fix appname in top domain( eg ab app for ab.c top domain)
+  def smart_proxy_domain
+    if proxy_base_domain =~ /^#{appname}/
+      return proxy_base_domain 
+    end
+    proxy_domains
   end
 
   # ref dklet/mac/hostnet
