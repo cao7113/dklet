@@ -239,25 +239,28 @@ class DockletCLI < Thor
   end
   map 'ls' => 'list'
 
-  desc 'clear_app_volumes', 'clear app volumes'
-  def clear_app_volumes
-    if app_volumes.directory?
-      if options[:force] || yes?("Remove app volumes dir: #{app_volumes} (y/n)?")
-        app_volumes.rmtree
+  desc 'clear_app', 'clear app store data'
+  def clear_app
+    if app_store.directory?
+      if options[:force] || yes?("Remove store: #{app_store} (y/n)?")
+        app_store.rmtree
       end
+      puts "clear app store: #{app_store}"
+    else
+      puts "not found #{app_store}"
     end
   end
 
-  desc 'reset', 'reset if need'
-  def reset
+  desc 'clear', 'clear all things'
+  def clear
     if in_prod?
       return unless (options[:force] || yes?("RESET #{full_release_name}?"))
     end
     system <<~Desc
-      #{dklet_script} clean
-      #{dklet_script} clear_app_volumes
-      #{dklet_script}
+      #{dklet_script} clean --image
+      #{dklet_script} clear_app
     Desc
+    puts "clear all things for #{full_release_name}!"
   end
 
   desc 'inspect_info', 'inspect info'
