@@ -218,12 +218,25 @@ class DockletCLI < Thor
     system cmd unless options[:dry]
   end
 
-  desc 'vols', 'ls volumes'
-  def vols
+  desc 'list', ''
+  option :volume, type: :boolean
+  option :config, type: :boolean
+  option :root, type: :boolean
+  def list
+    path = if options[:volume]
+             app_volumes
+           elsif options[:config]
+             app_config_path
+           elsif options[:root]
+             dkstore_root
+           else
+             app_volumes
+           end
     system <<~Desc
-      ls -l #{volumes_root}/
+      ls -lh #{path}
     Desc
   end
+  map 'ls' => 'list'
 
   desc 'clear_app_volumes', 'clear app volumes'
   def clear_app_volumes
