@@ -336,7 +336,13 @@ module Dklet::DSL
   end
 
   def default_ops_container
-    containers_for_release.first || containers_for_image.first # || container_name
+    c = containers_for_release.first
+    if raw_specfile # compose file format TODO
+      c || containers_for_image.first
+    else
+      c
+    end
+    # || container_name
   end
 
   def container_missing

@@ -220,7 +220,7 @@ class DockletCLI < Thor
 
   desc 'list', ''
   option :root, type: :boolean
-  option :tree
+  option :tree, default: '2', banner: 'depth in tree', aliases: [:t]
   def list
     path = if options[:root]
              dkstore_root
