@@ -243,7 +243,10 @@ class DockletCLI < Thor
   def clear_app
     if app_store.directory?
       if options[:force] || yes?("Remove store: #{app_store} (y/n)?")
-        app_store.rmtree
+        #app_store.rmtree
+        system <<~Desc
+          sudo rm -fr #{app_store}
+        Desc
       end
       puts "clear app store: #{app_store}"
     else
