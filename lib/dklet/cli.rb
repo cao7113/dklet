@@ -154,15 +154,17 @@ class DockletCLI < Thor
   end 
 
   desc 'ps', 'ps related containers'
-  option :imaged, type: :boolean, banner: 'same image digest'
+  option :image, type: :boolean, banner: 'same image digest'
+  option :all, type: :boolean, aliases: [:a], banner: 'same image digest'
   def ps
-    cmd = if options[:imaged]
+    cmd = if options[:image]
         "docker ps -f ancestor=#{docker_image} -a"
+      elsif options[:all]
+        "docker ps --format '{{.Names}}' -a | sort"
       else
         "docker ps #{container_filters_for_release} -a"
       end
-    puts cmd if options[:debug]
-    system cmd unless options[:dry]
+    system_run cmd
   end
 
   desc 'netup [NETNAME]', 'make networking'
@@ -197,7 +199,7 @@ class DockletCLI < Thor
   desc 'netps [NETNAME]', 'ps in a network' 
   def netps(net = netname)
     return unless net
-    system <<~Desc
+    system_run <<~Desc
       docker ps -f network=#{net} -a
     Desc
   end
