@@ -40,6 +40,12 @@ function dklet(){
       ;;
 
     ## app related
+    libcli|lib)
+      (cd $BOOTER_DKLET_HOME; vi lib/dklet/cli.rb)
+      ;;
+    dsl)
+      (cd $BOOTER_DKLET_HOME; vi lib/dklet/dsl.rb)
+      ;;
     gem)
       gem query dklet -l
       ;;

@@ -222,16 +222,19 @@ class DockletCLI < Thor
 
   desc 'list', ''
   option :root, type: :boolean
-  option :tree, default: '2', banner: 'depth in tree', aliases: [:t]
+  option :tree, banner: 'depth in tree', aliases: [:t]
   def list
     path = if options[:root]
              dkstore_root
            else
              app_store
            end
+
     puts "list path: #{path}"
-    cmd = if options[:tree]
-            "tree -L #{options[:tree]}"
+    cmd = if options.key?(:tree)
+            t = options[:tree]
+            t = 2 if t.to_i < 1
+            "tree -L #{t}"
           else
             "ls -alh"
           end

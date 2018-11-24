@@ -9,8 +9,11 @@ ARGV.shift
 argv = ARGV
 idx = argv.index('--env') || argv.index('-e')
 if idx
-  ENV['APP_ENV'] ||= argv[idx+1] || ENV['APP_DEFAULT_ENV']
+  val = argv[idx+1] || ENV['APP_DEFAULT_ENV']
+  val = 'prod' if val == 'p'
+  ENV['APP_ENV'] ||= val
 end
+
 idx = argv.index('--release') || argv.index('-r')
 if idx
   ENV['APP_RELEASE'] ||= argv[idx+1] || ENV['APP_DEFAULT_RELEASE']

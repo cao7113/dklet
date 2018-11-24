@@ -436,10 +436,12 @@ module Dklet::DSL
     denv = env
     denv = nil if in_prod?
 
+    rel = app_release 
+    rel = nil if rel == 'default'
     # xx.dev.lh
     # xx.lh for prod mode
     doms.map do |dom| 
-      [dom, denv, proxy_base_domain].compact.join('.')
+      [dom, rel, denv, proxy_base_domain].compact.join('.')
     end.join(',') 
   end
 
