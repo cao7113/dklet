@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Dklet::DSL
   class << self
     def registry
@@ -412,19 +414,8 @@ module Dklet::DSL
   end
 
   def proxy_base_domain
-    tdom = ENV['PROXY_BASE_DOMAIN'] || file_base_domain || 'lh'
+    tdom = ENV['PROXY_BASE_DOMAIN'] || dklet_config_for(:base_domain) || 'lh'
     tdom.sub(/^[\s\.]*/, '') # remove prefix
-  end
-
-  def base_domain_file
-    Pathname("~/.domain-base").expand_path
-  end
-
-  def file_base_domain
-    return unless base_domain_file.exist?
-    dom = base_domain_file.read.chomp.strip
-    return if dom.length < 1
-    dom
   end
 
   def proxy_domains(*doms)
@@ -443,6 +434,20 @@ module Dklet::DSL
     doms.map do |dom| 
       [dom, rel, denv, proxy_base_domain].compact.join('.')
     end.join(',') 
+  end
+
+  def proxy_domain_env_items(*doms)
+    domstr = proxy_domains(*doms)
+    env = { 'VIRTUAL_HOST' => domstr }
+    if ssl_nginx_proxy?
+      env["LETSENCRYPT_HOST"] = domstr
+      env["LETSENCRYPT_EMAIL"] = dklet_config_for(:letsencrypt_mail)
+    end
+    env.map{|k, v| [k, v].join('=') }
+  end
+
+  def proxy_domain_env_for(*doms)
+    proxy_domain_env_items(*doms).join("-e ")
   end
 
   # fix appname in top domain( eg ab app for ab.c top domain)
@@ -471,6 +476,26 @@ module Dklet::DSL
 
   def host_port_for(cport)
     host_with_port_for(cport, only_port: true)
+  end
+
+  ## local global config
+  def dklet_config_file
+    Pathname("~/.dklet.yml").expand_path
+  end
+
+  def dklet_config
+    return {} unless dklet_config_file.exist?
+    return @_gconfig if @_gconfig
+    @_gconfig = YAML.load_file(dklet_config_file)
+  end
+
+  def dklet_config_for(*keys)
+    return if keys.empty?
+    keys.inject(dklet_config){ |r, e| r&.fetch(e, nil) }
+  end
+
+  def ssl_nginx_proxy?
+    !! dklet_config_for(:ssl_nginx_proxy) 
   end
 end
 
