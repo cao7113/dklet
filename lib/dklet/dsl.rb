@@ -447,7 +447,7 @@ module Dklet::DSL
   end
 
   def proxy_domain_env_for(*doms)
-    proxy_domain_env_items(*doms).join("-e ")
+    proxy_domain_env_items(*doms).join(" -e ")
   end
 
   # fix appname in top domain( eg ab app for ab.c top domain)
