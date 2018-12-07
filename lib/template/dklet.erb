@@ -10,7 +10,7 @@ Desc
 
 task :main do
   system_run <<~Desc
-    #{dkrun_cmd(named: true)} -d #{docker_image}
+    #{dkrun_cmd(named: true)} -d #{docker_image} sleep 1d
     # #{compose_cmd} up -d
   Desc
 end
@@ -23,7 +23,5 @@ custom_commands do
     Desc
   end
 end
-
-# Generated with dklet version: <%=Dklet.version%>
 
 __END__

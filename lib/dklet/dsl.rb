@@ -151,10 +151,19 @@ module Dklet::DSL
 
   def rendered_file_for(name, locals: {}, in_binding: binding)
     tmpl = file_content_for(name)
+    rendering(tmpl, locals: locals, in_binding: in_binding)
+  end
+
+  def rendering(tmpl, path: nil, locals: {}, in_binding: binding)
     return unless tmpl
     erb = ERB.new(tmpl, nil, '%<>')
     rendered = erb.result(in_binding)
-    tmpfile_for(rendered)
+
+    path ||= tmpfile_for('render')
+    rpath = Pathname(path)
+    rpath.parent.mkpath
+    rpath.write(rendered)
+    rpath
   end
 
   # Dockerfile for image build
@@ -397,6 +406,12 @@ module Dklet::DSL
     dkstore_root.join(env, [env, app, rel].join('-'), 'volumes')
   end
 
+  def app_volume_for(name)
+    p = app_volumes.expand_path
+    p.mkpath unless p.directory?
+    p.join(name.to_s)
+  end
+
   def default_app_config
     app_store.join('config')
   end
@@ -404,7 +419,7 @@ module Dklet::DSL
   def app_config_for(name)
     p = app_config.expand_path
     p.mkpath unless p.directory?
-    p.join(name)
+    p.join(name.to_s)
   end
 
   #############################
