@@ -72,6 +72,7 @@ class DockletCLI < Thor
     system "docker run -d #{options[:opts]} #{docker_image}" unless options[:dry]
   end
 
+  # todo refactor
   desc 'build', 'build image'
   option :opts, banner: 'build extra options like --no-cache'
   def build
@@ -84,6 +85,8 @@ class DockletCLI < Thor
     cmd = "docker build --tag #{docker_image}"
     net = build_net
     cmd += " --network #{net}" if net
+    mirror = ENV['GEM_MIRROR']
+    cmd += " --build-arg GEM_MIRROR=#{mirror} " if mirror
     cmd += " #{options[:opts]}" if options[:opts]
 
     bpath = smart_build_context_path
@@ -92,7 +95,7 @@ class DockletCLI < Thor
     else # nil stand for do not need build context
       "cat #{dockerfile} | #{cmd} -"
     end
-    puts "build command:\n  #{cmd}" if options[:debug]
+    puts "build command:\n  #{cmd}" unless options[:quiet]
 
     system cmd unless options[:dry]
   end
