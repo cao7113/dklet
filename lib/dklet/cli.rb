@@ -26,6 +26,7 @@ class DockletCLI < Thor
     invoke_clean if options[:preclean] && task_opts(:main)[:preclean] != false
 
     invoke_hooks_for(:main, type: :before)
+    # todo firstly build???
     invoke :build, [], {} if options[:build] && task_opts(:main)[:build] != false
     invoke_hooks_for(:main)
   end
