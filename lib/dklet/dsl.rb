@@ -381,6 +381,10 @@ module Dklet::DSL
     ENV['APP_RELEASE'] || 'default'
   end
 
+  def default_release?
+    app_release == 'default'
+  end
+
   ######################################
   #    storage settings
   def dkstore_root
@@ -394,7 +398,11 @@ module Dklet::DSL
   end
 
   def default_app_store
-    dkstore_root.join(env, release_path_name)
+    parts = []
+    parts << app_release unless default_release?
+    parts << env
+    area = parts.join('-') 
+    dkstore_root.join(area, release_path_name)
   end
 
   def default_app_volumes

@@ -6,7 +6,7 @@ Note
 register :appname, 'dklite'
 
 custom_commands do
-  desc '', ''
+  desc 'config', 'show dklet-wide config'
   option :edit, type: :boolean, banner: 'edit config'
   option :renew, type: :boolean, banner: 'renew config'
   def config
@@ -14,7 +14,7 @@ custom_commands do
     pp dklet_config
   end
 
-  no_commands do
+  private
     def set_dklet_config(renew)
       file = dklet_config_file
       if !file.exist? || renew
@@ -33,7 +33,6 @@ custom_commands do
         letsencrypt_mail: 'you@somemail.com'
       }
     end
-  end
 end
 
 __END__

@@ -303,8 +303,9 @@ class DockletCLI < Thor
         release_labels: release_label_hash,
         network: netname,
         domains: proxy_domains,
-        app_volumes: app_volumes,
+        app_store: app_store,
         app_config: app_config,
+        app_volumes: app_volumes,
         dsl_methods: dsl_methods,
         registry: registry
       }
