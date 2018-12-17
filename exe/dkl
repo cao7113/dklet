@@ -1,6 +1,6 @@
 #!/usr/bin/env rundklet
 add_note <<~Note
-  dklet manager-lite
+  dklet lite manager
 Note
 
 register :appname, 'dklite'
@@ -15,24 +15,24 @@ custom_commands do
   end
 
   private
-    def set_dklet_config(renew)
-      file = dklet_config_file
-      if !file.exist? || renew
-        file.write default_config.to_yaml
-      end
-
-      system <<~Desc
-        vi #{dklet_config_file} 
-      Desc
+  def set_dklet_config(renew)
+    file = dklet_config_file
+    if !file.exist? || renew
+      file.write default_config.to_yaml
     end
 
-    def default_config
-      {
-        base_domain: 'lh',
-        ssl_nginx_proxy: false,
-        letsencrypt_mail: 'you@somemail.com'
-      }
-    end
+    system <<~Desc
+      vi #{dklet_config_file} 
+    Desc
+  end
+
+  def default_config
+    {
+      base_domain: 'lh',
+      ssl_nginx_proxy: false,
+      letsencrypt_mail: 'you@somemail.com'
+    }
+  end
 end
 
 __END__

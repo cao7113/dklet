@@ -398,11 +398,7 @@ module Dklet::DSL
   end
 
   def default_app_store
-    parts = []
-    parts << app_release unless default_release?
-    parts << env
-    area = parts.join('-') 
-    dkstore_root.join(area, release_path_name)
+    dkstore_root.join(env, release_path_name)
   end
 
   def default_app_volumes
